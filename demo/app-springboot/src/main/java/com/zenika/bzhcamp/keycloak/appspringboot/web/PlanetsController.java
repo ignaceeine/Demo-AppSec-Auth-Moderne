@@ -60,10 +60,6 @@ public class PlanetsController {
         return "about";
     }
 
-    @RequestMapping(value = "/apropos")
-    public String about() {
-        return "apropos";
-    }
 
     @GetMapping("favicon.ico")
     @ResponseBody
