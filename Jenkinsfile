@@ -236,43 +236,44 @@ pipeline {
         // =====================================================================
         // Trivy — Image Scan (avant push)
         // =====================================================================
+        // Scans séquentiels : les deux trivy partagent le même cache (/root/.cache/trivy),
+        // qui est verrouillé par un seul process à la fois => pas de parallel ici.
         stage('Trivy Image Scan') {
-            parallel {
-                stage('Scan App Image') {
-                    steps {
-                        sh '''
-                            trivy image \
-                                --exit-code 0 \
-                                --severity HIGH,CRITICAL \
-                                --format table \
-                                --output trivy-image-app.txt \
-                                ${APP_IMAGE}:${IMAGE_TAG}
-                            cat trivy-image-app.txt
-                        '''
-                    }
-                    post {
-                        always {
-                            archiveArtifacts artifacts: 'trivy-image-app.txt', allowEmptyArchive: true
-                        }
-                    }
-                }
-                stage('Scan Service Image') {
-                    steps {
-                        sh '''
-                            trivy image \
-                                --exit-code 0 \
-                                --severity HIGH,CRITICAL \
-                                --format table \
-                                --output trivy-image-service.txt \
-                                ${SVC_IMAGE}:${IMAGE_TAG}
-                            cat trivy-image-service.txt
-                        '''
-                    }
-                    post {
-                        always {
-                            archiveArtifacts artifacts: 'trivy-image-service.txt', allowEmptyArchive: true
-                        }
-                    }
+            steps {
+                sh '''
+                    # Bases de vulnérabilités téléchargées une seule fois, avec un timeout large
+                    # (la Java DB fait ~1 Go la première fois, puis reste en cache 3 jours)
+                    trivy image --download-db-only --timeout 20m
+                    trivy image --download-java-db-only --timeout 20m
+
+                    echo "====== APP IMAGE SCAN ======"
+                    trivy image \
+                        --skip-db-update --skip-java-db-update \
+                        --scanners vuln \
+                        --timeout 15m \
+                        --exit-code 0 \
+                        --severity HIGH,CRITICAL \
+                        --format table \
+                        --output trivy-image-app.txt \
+                        ${APP_IMAGE}:${IMAGE_TAG}
+                    cat trivy-image-app.txt
+
+                    echo "====== SERVICE IMAGE SCAN ======"
+                    trivy image \
+                        --skip-db-update --skip-java-db-update \
+                        --scanners vuln \
+                        --timeout 15m \
+                        --exit-code 0 \
+                        --severity HIGH,CRITICAL \
+                        --format table \
+                        --output trivy-image-service.txt \
+                        ${SVC_IMAGE}:${IMAGE_TAG}
+                    cat trivy-image-service.txt
+                '''
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'trivy-image-*.txt', allowEmptyArchive: true
                 }
             }
         }
