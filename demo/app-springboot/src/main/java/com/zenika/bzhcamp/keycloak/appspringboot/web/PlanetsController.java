@@ -38,7 +38,18 @@ public class PlanetsController {
         return "landing";
     }
 
+    @RequestMapping(value = "/home")
+    public String landing() {
+        return "landing";
+    }
+
     @RequestMapping(value = "/logout")
+    public String handleLogout(HttpServletRequest request) throws ServletException {
+        request.logout();
+        return "redirect:/";
+    }
+
+    @RequestMapping(value = "/deconnexion")
     public String handleLogout(HttpServletRequest request) throws ServletException {
         request.logout();
         return "redirect:/";
@@ -47,6 +58,11 @@ public class PlanetsController {
     @RequestMapping(value = "/about")
     public String about() {
         return "about";
+    }
+
+    @RequestMapping(value = "/apropos")
+    public String about() {
+        return "apropos";
     }
 
     @GetMapping("favicon.ico")
