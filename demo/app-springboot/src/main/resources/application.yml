@@ -11,7 +11,7 @@ logging:
     freemarker: INFO
     org.springframework.ui.freemarker: INFO
   pattern:
-    console: "%highlight(%-5level) [%blue(%t)] %yellow(%C{1.}): %msg%n%throwable"
+    console: "%highlight(%-5level) [%blue(%t)] %yellow(%logger{40}): %msg%n%throwable"
     
 
 planets:

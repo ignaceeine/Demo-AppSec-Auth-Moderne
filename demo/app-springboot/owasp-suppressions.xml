@@ -5,27 +5,38 @@
         Fichier de suppressions OWASP Dependency Check.
         Ajouter ici les faux-positifs ou CVE acceptées avec leur justification.
 
-        Format :
-        <suppress>
-            <notes>Justification — accepté le JJ/MM/AAAA par [nom]</notes>
-            <cve>CVE-YYYY-XXXXX</cve>
-        </suppress>
-
-        Ou par package GAV :
-        <suppress>
-            <notes>...</notes>
-            <gav regex="true">^org\.example:artifact:.*$</gav>
-            <cve>CVE-YYYY-XXXXX</cve>
-        </suppress>
+        Règles :
+          - toujours une justification dans <notes> (date + raison + condition de levée) ;
+          - toujours limiter à la version concernée (gav) pour que la suppression
+            tombe d'elle-même lors d'une montée de version ;
+          - toujours une date d'expiration (until) pour forcer une revue.
     -->
 
-    <!-- Exemple : suppression d'un faux positif spring-boot-devtools en dev -->
-    <!--
-    <suppress>
-        <notes>spring-boot-devtools n'est pas embarqué en production (scope: optional)</notes>
-        <gav regex="true">^org\.springframework\.boot:spring-boot-devtools:.*$</gav>
-        <cve>CVE-YYYY-XXXXX</cve>
+    <!-- =====================================================================
+         Spring Framework 6.2.19 — CVE corrigées uniquement en 7.0.9 (Spring Boot 4).
+         Aucune version 6.2.x corrigée n'est publiée sur Maven Central.
+         Accepté le 14/11/2026 : fonctionnalités vulnérables non utilisées (vérifié par
+         recherche dans le code : aucun XsltView, RouterFunction, RequestPredicates,
+         SseEmitter / ServerSentEvent ni fragments de vues).
+         À lever : migration Spring Boot 4 / Spring Framework 7.0.9+.
+         ===================================================================== -->
+
+    <suppress until="2027-05-14Z">
+        <notes>CVE-2026-47884 (RCE via XsltView) : l'application n'utilise pas XsltView ni aucune vue XSLT.</notes>
+        <gav regex="true">^org\.springframework:spring-[a-z-]+:6\.2\.19$</gav>
+        <cve>CVE-2026-47884</cve>
     </suppress>
-    -->
+
+    <suppress until="2027-05-14Z">
+        <notes>CVE-2026-47892 (bypass de prédicat d'en-tête) : ne concerne que les endpoints fonctionnels WebFlux (RouterFunction) ; l'application n'en déclare aucun (WebFlux n'est utilisé que pour le client HTTP).</notes>
+        <gav regex="true">^org\.springframework:spring-[a-z-]+:6\.2\.19$</gav>
+        <cve>CVE-2026-47892</cve>
+    </suppress>
+
+    <suppress until="2027-05-14Z">
+        <notes>CVE-2026-47890 (corruption de flux SSE avec fragments de vues) : l'application n'émet pas de Server-Sent Events.</notes>
+        <gav regex="true">^org\.springframework:spring-[a-z-]+:6\.2\.19$</gav>
+        <cve>CVE-2026-47890</cve>
+    </suppress>
 
 </suppressions>

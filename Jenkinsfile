@@ -112,6 +112,7 @@ pipeline {
                                 -DfailBuildOnCVSS=10 \
                                 -DcveValidForHours=12 \
                                 -Dformat=ALL \
+                                -DsuppressionFile=owasp-suppressions.xml \
                                 -B || true
                         '''
                     }

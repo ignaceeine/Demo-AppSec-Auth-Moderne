@@ -1,0 +1,14 @@
+# CVE acceptées — lu automatiquement par Trivy (fs et image) depuis la racine du workspace Jenkins.
+# Même justification que demo/*/owasp-suppressions.xml : à garder synchronisés.
+#
+# Spring Framework 6.2.19 : corrigées uniquement en 7.0.9 (Spring Boot 4), fonctionnalités
+# vulnérables non utilisées (pas de XsltView, RouterFunction WebFlux ni SSE avec fragments de vues).
+# Accepté le 14/11/2026 — à lever lors de la migration Spring Boot 4.
+# "exp:" = date d'expiration : passé cette date, Trivy signale de nouveau la CVE.
+
+# RCE via XsltView
+CVE-2026-47884 exp:2027-05-14
+# Bypass de prédicat d'en-tête (endpoints fonctionnels WebFlux)
+CVE-2026-47892 exp:2027-05-14
+# Corruption de flux SSE avec fragments de vues
+CVE-2026-47890 exp:2027-05-14
