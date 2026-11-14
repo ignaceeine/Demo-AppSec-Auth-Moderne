@@ -25,6 +25,8 @@
 		     (CVE remontées par OWASP Dependency-Check / Trivy). À retirer quand Spring Boot les intègre. -->
 		<tomcat.version>10.1.59</tomcat.version>
 		<jackson-bom.version>2.21.7</jackson-bom.version>
+		<log4j2.version>2.25.5</log4j2.version>
+		<commons-lang3.version>3.18.0</commons-lang3.version>
 		<!-- SonarQube -->
 		<sonar-maven-plugin.version>5.8.0.7211</sonar-maven-plugin.version>
 		<sonar.projectKey>poc-keycloak-service</sonar.projectKey>
@@ -73,6 +75,18 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+
+	<dependencyManagement>
+		<dependencies>
+			<!-- swagger-ui 5.34.0 (tiré par springdoc 2.10.0) embarque DOMPurify 3.4.16 :
+			     CVE-2026-116802/116803/116804. La 5.34.1 embarque DOMPurify 3.4.17 (corrigé). -->
+			<dependency>
+				<groupId>org.webjars</groupId>
+				<artifactId>swagger-ui</artifactId>
+				<version>5.34.1</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<build>
 		<plugins>

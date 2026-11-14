@@ -90,6 +90,8 @@ pipeline {
         // =====================================================================
         // OWASP Dependency Check — CVE score >= 7 → unstable
         // =====================================================================
+        // OSS Index (Sonatype) exige désormais un compte : analyseur désactivé
+        // (-DossindexAnalyzerEnabled=false), la détection repose sur NVD + RetireJS.
         stage('OWASP Dependency Check') {
             steps {
                 withCredentials([string(credentialsId: 'nvd-api-key',
@@ -102,6 +104,7 @@ pipeline {
                                 -DcveValidForHours=12 \
                                 -Dformat=ALL \
                                 -DsuppressionFile=owasp-suppressions.xml \
+                                -DossindexAnalyzerEnabled=false \
                                 -B || true
                         '''
                     }
@@ -113,6 +116,7 @@ pipeline {
                                 -DcveValidForHours=12 \
                                 -Dformat=ALL \
                                 -DsuppressionFile=owasp-suppressions.xml \
+                                -DossindexAnalyzerEnabled=false \
                                 -B || true
                         '''
                     }

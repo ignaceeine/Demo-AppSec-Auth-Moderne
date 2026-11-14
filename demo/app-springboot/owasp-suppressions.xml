@@ -2,7 +2,7 @@
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
 
     <!--
-        Fichier de suppressions OWASP Dependency Check.
+        Fichier de suppressions OWASP Dependency Check — module app-springboot.
         Ajouter ici les faux-positifs ou CVE acceptées avec leur justification.
 
         Règles :
@@ -10,33 +10,128 @@
           - toujours limiter à la version concernée (gav) pour que la suppression
             tombe d'elle-même lors d'une montée de version ;
           - toujours une date d'expiration (until) pour forcer une revue.
+
+        Contexte (revue du 14/11/2026) : Spring Boot 3.5 / Spring Framework 6.2 / Spring Security 6.5
+        ne reçoivent plus de correctifs open source ; les CVE ci-dessous ne sont corrigées que dans
+        Spring Framework 7.0.9+ / Spring Security 7.x (Spring Boot 4). Chaque CVE a été vérifiée
+        contre le code (src/main) et le classpath (mvn dependency:list) : les fonctionnalités
+        vulnérables ne sont pas utilisées.
+        À lever : migration Spring Boot 4.
     -->
 
     <!-- =====================================================================
-         Spring Framework 6.2.19 — CVE corrigées uniquement en 7.0.9 (Spring Boot 4).
-         Aucune version 6.2.x corrigée n'est publiée sur Maven Central.
-         Accepté le 14/11/2026 : fonctionnalités vulnérables non utilisées (vérifié par
-         recherche dans le code : aucun XsltView, RouterFunction, RequestPredicates,
-         SseEmitter / ServerSentEvent ni fragments de vues).
-         À lever : migration Spring Boot 4 / Spring Framework 7.0.9+.
+         Spring Framework 6.2.19
+         OWASP rattache ces CVE à tous les jars spring-* (CPE "spring_framework"),
+         d'où le gav sur l'ensemble des artefacts org.springframework en 6.2.19.
          ===================================================================== -->
 
     <suppress until="2027-05-14Z">
-        <notes>CVE-2026-47884 (RCE via XsltView) : l'application n'utilise pas XsltView ni aucune vue XSLT.</notes>
+        <notes>CVE-2026-47884 (RCE via XsltView) : aucune vue XSLT ; vues FreeMarker uniquement.</notes>
         <gav regex="true">^org\.springframework:spring-[a-z-]+:6\.2\.19$</gav>
         <cve>CVE-2026-47884</cve>
     </suppress>
 
     <suppress until="2027-05-14Z">
-        <notes>CVE-2026-47892 (bypass de prédicat d'en-tête) : ne concerne que les endpoints fonctionnels WebFlux (RouterFunction) ; l'application n'en déclare aucun (WebFlux n'est utilisé que pour le client HTTP).</notes>
+        <notes>
+            WebFlux côté serveur non utilisé : l'application est servie par Spring MVC sur Tomcat ;
+            WebFlux/Reactor Netty ne sert qu'au client HTTP (WebClient vers le service REST).
+            CVE-2026-47892 : endpoints fonctionnels WebFlux (RouterFunction) - aucun.
+            CVE-2026-47885 : PartEventHttpMessageReader (multipart côté serveur WebFlux) - non utilisé.
+            CVE-2026-47893 : WebSocket WebFlux - spring-websocket absent.
+            CVE-2026-47891 : parseur XML Aalto (maxInMemorySize) - aalto-xml absent du classpath.
+            CVE-2026-47888 : RSocket - rsocket-core absent du classpath.
+            CVE-2026-47889 : adaptateur réactif Jetty 12 - Jetty absent (serveur Tomcat).
+        </notes>
         <gav regex="true">^org\.springframework:spring-[a-z-]+:6\.2\.19$</gav>
         <cve>CVE-2026-47892</cve>
+        <cve>CVE-2026-47885</cve>
+        <cve>CVE-2026-47893</cve>
+        <cve>CVE-2026-47891</cve>
+        <cve>CVE-2026-47888</cve>
+        <cve>CVE-2026-47889</cve>
     </suppress>
 
     <suppress until="2027-05-14Z">
-        <notes>CVE-2026-47890 (corruption de flux SSE avec fragments de vues) : l'application n'émet pas de Server-Sent Events.</notes>
+        <notes>
+            SpEL jamais évalué sur une entrée utilisateur : les seules expressions sont les
+            @PreAuthorize("hasRole('user')") constantes du code. Pas de SimpleEvaluationContext.
+            CVE-2026-59283 : contournement de SimpleEvaluationContext avec le compilateur SpEL.
+            CVE-2026-47886 : DoS via l'opérateur ^ dans une expression SpEL fournie par l'utilisateur.
+        </notes>
+        <gav regex="true">^org\.springframework:spring-[a-z-]+:6\.2\.19$</gav>
+        <cve>CVE-2026-59283</cve>
+        <cve>CVE-2026-47886</cve>
+    </suppress>
+
+    <suppress until="2027-05-14Z">
+        <notes>
+            Fonctionnalités Spring MVC non utilisées (PlanetsController : 4 vues à nom constant,
+            aucun objet lié aux paramètres de requête).
+            CVE-2026-47890 / CVE-2026-59313 : Server-Sent Events - aucun SSE émis.
+            CVE-2026-47883 : UrlHandlerFilter - non configuré.
+            CVE-2026-47887 : UrlFileNameViewController - non utilisé.
+            CVE-2026-59314 : en-tête Content-Disposition construit depuis une entrée - aucun.
+            CVE-2026-59281 : Errors.getFieldErrors() avec échappement HTML - pas de formulaire ni d'Errors.
+            CVE-2026-59282 : data binding de chemins de propriétés fournis par l'utilisateur - aucun
+                             @ModelAttribute / objet de commande (paramètres : Principal, Model).
+            CVE-2026-59280 : FreeMarker + nom de vue dérivé d'une entrée - noms de vues constants
+                             ("landing", "about", "planets", "redirect:/").
+        </notes>
         <gav regex="true">^org\.springframework:spring-[a-z-]+:6\.2\.19$</gav>
         <cve>CVE-2026-47890</cve>
+        <cve>CVE-2026-59313</cve>
+        <cve>CVE-2026-47883</cve>
+        <cve>CVE-2026-47887</cve>
+        <cve>CVE-2026-59314</cve>
+        <cve>CVE-2026-59281</cve>
+        <cve>CVE-2026-59282</cve>
+        <cve>CVE-2026-59280</cve>
+    </suppress>
+
+    <!-- =====================================================================
+         Spring Security 6.5.11
+         ===================================================================== -->
+
+    <suppress until="2027-05-14Z">
+        <notes>
+            Composants Spring Security non utilisés (authentification OAuth2/OIDC Keycloak uniquement).
+            CVE-2026-59270 : serveur LDAP embarqué UnboundIdContainer - unboundid-ldapsdk absent du classpath.
+            CVE-2026-41707 : DPoPProofJwtDecoderFactory - DPoP non configuré.
+            CVE-2026-47841 : WebAuthn - non utilisé.
+            CVE-2026-47842 : AesBytesEncryptor - non utilisé.
+        </notes>
+        <gav regex="true">^org\.springframework\.security:spring-security-[a-z0-9-]+:6\.5\.11$</gav>
+        <cve>CVE-2026-59270</cve>
+        <cve>CVE-2026-41707</cve>
+        <cve>CVE-2026-47841</cve>
+        <cve>CVE-2026-47842</cve>
+    </suppress>
+
+    <suppress until="2027-05-14Z">
+        <notes>
+            CVE-2026-59276 (MEDIUM 5.9) : comparaisons non constantes en temps (String.equals) dans
+            « plusieurs composants » Spring Security non nommés par l'avis. Non exclue avec certitude :
+            RISQUE RÉSIDUEL ACCEPTÉ (attaque temporelle à distance difficile à exploiter, aucun correctif
+            open source en 6.5.x). À lever en priorité lors de la migration Spring Boot 4.
+        </notes>
+        <gav regex="true">^org\.springframework\.security:spring-security-[a-z0-9-]+:6\.5\.11$</gav>
+        <cve>CVE-2026-59276</cve>
+    </suppress>
+
+    <!-- =====================================================================
+         Autres
+         ===================================================================== -->
+
+    <suppress until="2027-05-14Z">
+        <notes>CVE-2026-47874 (Reactor Netty, MEDIUM 5.3) : consommation mémoire du SERVEUR HTTP Reactor Netty sur requêtes pipelinées. Reactor Netty n'est utilisé qu'en client (WebClient) ; le serveur est Tomcat. Pas de version 1.2.x corrigée publiée.</notes>
+        <gav regex="true">^io\.projectreactor\.netty:reactor-netty-[a-z]+:1\.2\.18$</gav>
+        <cve>CVE-2026-47874</cve>
+    </suppress>
+
+    <suppress until="2027-05-14Z">
+        <notes>Faux positif CVE-2025-7962 : concerne Jakarta Mail / Angus Mail (injection SMTP), pas angus-activation. Aucun envoi de mail dans l'application.</notes>
+        <gav regex="true">^org\.eclipse\.angus:angus-activation:2\.0\.3$</gav>
+        <cve>CVE-2025-7962</cve>
     </suppress>
 
 </suppressions>
