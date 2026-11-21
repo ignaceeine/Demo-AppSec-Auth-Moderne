@@ -44,6 +44,12 @@ public class PlanetsController {
         return "redirect:/";
     }
 
+    @RequestMapping(value = "/deconnexion")
+    public String handleLogout(HttpServletRequest request) throws ServletException {
+        request.logout();
+        return "redirect:/";
+    }
+
     @RequestMapping(value = "/about")
     public String about() {
         return "about";
